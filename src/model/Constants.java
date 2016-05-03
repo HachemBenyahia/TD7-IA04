@@ -10,7 +10,7 @@ public class Constants
 	public static int lowEnergy = 3;
 	public static int foodEnergy = 1;
 	
-	public enum Direction
+	public static enum Direction
 	{
 		UP_LEFT,
 		UP,
@@ -22,7 +22,7 @@ public class Constants
 		DOWN_RIGHT
 	}
 	
-	private void handleUp(Spot spot, int distance)
+	private static void handleUp(Spot spot, int distance)
 	{
 		int y;
 		
@@ -34,7 +34,7 @@ public class Constants
 			spot.setY(y);
 	}
 	
-	private void handleDown(Spot spot, int distance)
+	private static void handleDown(Spot spot, int distance)
 	{
 		int y;
 		
@@ -46,7 +46,7 @@ public class Constants
 			spot.setY(y);
 	}
 	
-	private void handleLeft(Spot spot, int distance)
+	private static void handleLeft(Spot spot, int distance)
 	{
 		int x;
 		
@@ -58,7 +58,7 @@ public class Constants
 			spot.setX(x);
 	}
 	
-	private void handleRight(Spot spot, int distance)
+	private static void handleRight(Spot spot, int distance)
 	{
 		int x;
 		
@@ -70,7 +70,7 @@ public class Constants
 			spot.setX(x);
 	}
 	
-	public void getSpot(Spot spot, Direction direction, int distance)
+	public static void getSpot(Spot spot, Direction direction, int distance)
 	{
 		int x, y;
 		
@@ -78,7 +78,7 @@ public class Constants
 		{
 			case UP_LEFT :
 				handleUp(spot, distance);
-				handleLeft(spot, distance);
+				handleLeft(spot, distance); // revenir sur ça, je pense que c'est (int)distance/sqrt(2) car on se place sur un cercle
 			break;
 				
 			case UP :

@@ -1,8 +1,10 @@
 package model;
 
+import model.Constants.Direction;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.engine.Stoppable;
+import sim.util.Bag;
 
 public class Insect implements Steppable
 {
@@ -11,6 +13,7 @@ public class Insect implements Steppable
 	private int m_chargeMax;
 	private int m_energy;
 	private int m_charge;
+	private Field m_field;
 	private Spot m_spot;
 	public Stoppable stoppable;
 	
@@ -31,22 +34,53 @@ public class Insect implements Steppable
 		m_distancePerception = distancePerception;
 		m_chargeMax = chargeMax;
 	}
-	/*
-	private int[] nearestFood()
+	
+	private Spot nearestFood()
 	{
-		int[] spot = {0, 0};
+		Spot spot = m_spot;
+		Bag bag;
 		
+		for(Direction direction : Direction.values())
+		{
+			for(int i = 1 ; i <= m_distancePerception ; i++)
+			{
+				Constants.getSpot(spot, direction, i);
+				
+				bag = m_field.field.getObjectsAtLocation(spot.getX(), spot.getY());
+				Object[] objects = bag.toArray();
+				
+				for(int j = 0 ; j < objects.length ; j++)
+					if(objects[j].getClass().toString() == "Food")
+						return spot;
+			}
+		}
 		
 		return spot;
-	}*/
+	}
+	
+	void moveTo(Spot spot)
+	{
+		if(m_distanceDeplacement >= m_spot.getDistance(spot))
+			m_spot = spot;
+		else
+		{
+			switch(m_spot.getDirection(spot))
+			{
+				case UP_LEFT :
+					
+				break;
+			}
+		}
+	}
 	
 	public void step(SimState state) 
 	{
 		Field field = (Field) state;
+		m_field = field;
 		
 		if(m_energy == 0)
 		{
-			field.remove(this);
+			field.field.remove(this);
 			stoppable.stop();
 		}
 		
@@ -61,6 +95,8 @@ public class Insect implements Steppable
 			}
 			
 			// sinon il va essayer de manger ce qui se trouve près de lui
+			Spot nearestFoodSpot = nearestFood();
+			Constants.Direction direction = m_spot.getDirection(nearestFoodSpot);
 		}
 	}
 }

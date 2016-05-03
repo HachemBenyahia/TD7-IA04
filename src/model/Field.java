@@ -57,14 +57,4 @@ public class Field extends SimState
 	    	food.stoppable = stoppable;
 	    }
 	}
-
-	public void remove(Insect insect) 
-	{
-		field.remove(insect);
-	}
-	
-	public void remove(Food food) 
-	{
-		field.remove(food);
-	}
 }
