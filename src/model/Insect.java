@@ -15,88 +15,125 @@ public class Insect implements Steppable
 	private int m_charge;
 	private Field m_field;
 	private Spot m_spot;
+	private int m_id;
+	private boolean m_alive;
 	public Stoppable stoppable;
 	
-	Insect(Spot spot)
+	Insect(int id, Spot spot)
 	{
+		m_id = id;
 		m_distanceDeplacement = 1;
-		m_distancePerception = 1;
+		m_distancePerception = 10;
 		m_chargeMax = 1;
-		m_energy = 5;
+		m_energy = Constants.defaultInitialEnergy;
 		m_charge = 0;
 		m_spot = spot;
+		m_alive = true;
 	}
 	
-	Insect(Spot spot, int distanceDeplacement, int distancePerception, int chargeMax)
+	Insect(int id, Spot spot, int distanceDeplacement, int distancePerception, int chargeMax)
 	{
+		m_id = id;
 		m_spot = spot;
 		m_distanceDeplacement = distanceDeplacement;
 		m_distancePerception = distancePerception;
 		m_chargeMax = chargeMax;
+		m_alive = true;
 	}
 	
-	private Spot nearestFood()
+	public boolean spotContainsFood(Spot spot)
 	{
-		Spot spot = m_spot;
-		Bag bag;
+		Bag bag = m_field.field.getObjectsAtLocation(spot.getX(), spot.getY());
 		
-		for(Direction direction : Direction.values())
-		{
-			for(int i = 1 ; i <= m_distancePerception ; i++)
-			{
-				Constants.getSpot(spot, direction, i);
-				
-				bag = m_field.field.getObjectsAtLocation(spot.getX(), spot.getY());
-				Object[] objects = bag.toArray();
-				
-				for(int j = 0 ; j < objects.length ; j++)
-					if(objects[j].getClass().toString() == "Food")
-						return spot;
-			}
-		}
+		if(bag == null)
+			return false;
 		
-		return spot;
+		for(int i = 0 ; i < bag.size() ; i++)
+			if(bag.getValue(i).getClass().getSimpleName().equalsIgnoreCase("food"))
+				return true;
+		
+		return false;
 	}
-	
-	void moveTo(Spot spot)
+
+	private Spot nearestFoodSpot()
 	{
-		if(m_distanceDeplacement >= m_spot.getDistance(spot))
-			m_spot = spot;
-		else
-		{
-			switch(m_spot.getDirection(spot))
-			{
-				case UP_LEFT :
-					
-				break;
-			}
-		}
+		Spot[][] spots = m_spot.getSurroundingSpots(m_distancePerception);
+		
+		for(int i = 0 ; i < m_distancePerception * 2 + 1 ; i++)
+			for(int j = 0 ; j  < m_distancePerception * 2 + 1 ; j++)
+				if(spotContainsFood(spots[i][j]))
+					return spots[i][j];
+		
+		return m_spot;
 	}
 	
+	// spot qui minimise la distance au spot objectif (dans la mesure de la
+	// capacité de déplacement maximale)
+	void moveTowards(Spot spot)
+	{	
+		Spot[][] spots = m_spot.getSurroundingSpots(m_distanceDeplacement);
+
+		for(int i = 0 ; i < m_distanceDeplacement * 2 + 1 ; i++)
+			for(int j = 0 ; j < m_distanceDeplacement * 2 + 1 ; j++)
+				if(spots[i][j].getDistance(spot) < m_spot.getDistance(spot))
+					m_spot = spots[i][j];
+		
+		m_field.field.setObjectLocation(this, m_spot.getX(), m_spot.getY());
+	}
+	
+	public boolean isOnFood()
+	{
+		return spotContainsFood(m_spot);
+	}
+	
+	public Food getFood(Spot spot)
+	{
+		Bag bag = m_field.field.getObjectsAtLocation(spot.getX(), spot.getY());
+		
+		if(bag == null)
+			return null;
+		
+		for(int i = 0 ; i < bag.size() ; i++)
+			if(bag.getValue(i).getClass().getSimpleName().equalsIgnoreCase("food"))
+				return (Food) bag.getValue(i);
+		
+		return null;
+	}
+
 	public void step(SimState state) 
 	{
 		Field field = (Field) state;
 		m_field = field;
-		
+
+		// s'il n'a plus d'énergie, il meurt
 		if(m_energy == 0)
 		{
-			field.field.remove(this);
+			m_field.field.remove(this);
 			stoppable.stop();
+			m_alive = false;
 		}
 		
-		// s'il a besoin de manger
-		if(m_energy < Constants.lowEnergy)
+		// une seule action possible par tour : soit il mange, soit il charge, soit il se déplace
+		if(m_alive)
 		{
-			// il va d'abord essayer de consommer ce qu'il a
 			if(m_charge > 0)
 			{
 				m_charge--;
 				m_energy += Constants.foodEnergy;
+				
+			}
+			else if(isOnFood() && (m_charge < m_chargeMax))
+			{
+				m_charge++;
+				getFood(m_spot).decreaseQuantity();
+			}
+			else
+			{
+				Spot nearestFoodSpot = nearestFoodSpot();
+				moveTowards(nearestFoodSpot);
 			}
 			
-			// sinon il va essayer de manger ce qui se trouve près de lui
-			Spot nearestFoodSpot = nearestFood();
-			Constants.Direction direction = m_spot.getDirection(nearestFoodSpot);
+			m_energy--;
 		}
 	}
 }
