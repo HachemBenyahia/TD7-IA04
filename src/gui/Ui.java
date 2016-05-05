@@ -4,6 +4,7 @@ import java.awt.Color;
 
 import javax.swing.JFrame;
 
+import model.Constants;
 import model.Field;
 import model.Food;
 import model.Insect;
@@ -17,7 +18,7 @@ import sim.portrayal.simple.OvalPortrayal2D;
 
 public class Ui extends GUIState
 {
-	public static int nbFrames = 600;
+	public static int nbFrames = Constants.nbFrames;
 	public JFrame frame;
 	public Display2D display;
 	SparseGridPortrayal2D fieldPortrayal = new SparseGridPortrayal2D();
@@ -70,7 +71,7 @@ public class Ui extends GUIState
 		OvalPortrayal2D portrayal = new OvalPortrayal2D();
 		
 		portrayal.paint = Color.red;
-		portrayal.filled = false;
+		portrayal.filled = true;
 		
 		return portrayal;
 	}

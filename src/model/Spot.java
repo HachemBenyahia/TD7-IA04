@@ -99,7 +99,7 @@ public class Spot
 		int y = m_y - 1;
 		
 		if(y < 0)
-			spot.setY(Constants.gridSize - y);
+			spot.setY(y + Constants.gridSize);
 		else
 			spot.setY(y);
 		
@@ -123,7 +123,7 @@ public class Spot
 		int x = spot.getX() - 1;
 		
 		if(x < 0)
-			spot.setX(Constants.gridSize - x);
+			spot.setX(x + Constants.gridSize);
 		else
 			spot.setX(x);
 		

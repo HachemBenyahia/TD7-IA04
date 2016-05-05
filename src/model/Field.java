@@ -16,7 +16,7 @@ public class Field extends SimState
 		super(seed);
 	}
 	
-	private Spot getFreeSpot()
+	public Spot getFreeSpot()
 	{
 		Spot spot = new Spot();
 		
@@ -40,7 +40,10 @@ public class Field extends SimState
 	    for(int i = 0 ; i < Constants.nbInsects ; i++)
 	    {	
 	    	spot = getFreeSpot();
-	    	Insect insect = new Insect(i, spot);
+	    	
+	    	int[] randomCapacities = Insect.randomCapacities();
+	    	
+	    	Insect insect = new Insect(i, spot, randomCapacities[0], randomCapacities[1], randomCapacities[2]);
 	    	field.setObjectLocation(insect, spot.getX(), spot.getY());
 	    	
 	    	Stoppable stoppable = schedule.scheduleRepeating(insect);

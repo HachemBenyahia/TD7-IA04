@@ -8,10 +8,12 @@ import sim.util.Bag;
 
 public class Insect implements Steppable
 {
+	public static int m_numberAlive = Constants.nbInsects;
 	private int m_distanceDeplacement;
 	private int m_distancePerception;
 	private int m_chargeMax;
 	private int m_energy;
+	private int m_maxEnergy;
 	private int m_charge;
 	private Field m_field;
 	private Spot m_spot;
@@ -22,13 +24,14 @@ public class Insect implements Steppable
 	Insect(int id, Spot spot)
 	{
 		m_id = id;
-		m_distanceDeplacement = 1;
-		m_distancePerception = 10;
-		m_chargeMax = 1;
+		m_distanceDeplacement = Constants.defaultInitialDeplacement;
+		m_distancePerception = Constants.defaultInitialPerception;
+		m_chargeMax = Constants.defaultMaxLoad;
 		m_energy = Constants.defaultInitialEnergy;
 		m_charge = 0;
 		m_spot = spot;
 		m_alive = true;
+		m_maxEnergy = Constants.defaultMaxEnergy;
 	}
 	
 	Insect(int id, Spot spot, int distanceDeplacement, int distancePerception, int chargeMax)
@@ -39,6 +42,29 @@ public class Insect implements Steppable
 		m_distancePerception = distancePerception;
 		m_chargeMax = chargeMax;
 		m_alive = true;
+		m_energy = Constants.defaultInitialEnergy;
+		m_charge = 0;
+		m_maxEnergy = Constants.defaultMaxEnergy;
+	}
+	
+	public static int[] randomCapacities()
+	{
+		int distanceDeplacement, distancePerception, maxLoad;
+		do
+		{
+			distanceDeplacement = (int) (Math.random() * Constants.capacity);
+			distancePerception = (int) (Math.random() * Constants.capacity);
+			maxLoad = (int) (Math.random()* Constants.capacity);
+		}
+		while(((distanceDeplacement + distancePerception + maxLoad) != 10) || ((distanceDeplacement == 0) || distancePerception == 0)
+		|| (maxLoad == 0));
+		
+		return new int[] {distanceDeplacement, distancePerception, maxLoad};
+	}
+	
+	public void printCapacities()
+	{
+		System.out.println(m_distanceDeplacement + ", " + m_distancePerception + ", " + m_chargeMax);
 	}
 	
 	public boolean spotContainsFood(Spot spot)
@@ -55,7 +81,7 @@ public class Insect implements Steppable
 		return false;
 	}
 
-	private Spot nearestFoodSpot()
+	public Spot nearestFoodSpot()
 	{
 		Spot[][] spots = m_spot.getSurroundingSpots(m_distancePerception);
 		
@@ -69,7 +95,7 @@ public class Insect implements Steppable
 	
 	// spot qui minimise la distance au spot objectif (dans la mesure de la
 	// capacité de déplacement maximale)
-	void moveTowards(Spot spot)
+	public void moveTowards(Spot spot)
 	{	
 		Spot[][] spots = m_spot.getSurroundingSpots(m_distanceDeplacement);
 
@@ -99,37 +125,44 @@ public class Insect implements Steppable
 		
 		return null;
 	}
-
+	
 	public void step(SimState state) 
 	{
 		Field field = (Field) state;
 		m_field = field;
-
+		
 		// s'il n'a plus d'énergie, il meurt
 		if(m_energy == 0)
 		{
 			m_field.field.remove(this);
 			stoppable.stop();
 			m_alive = false;
+			m_numberAlive--;
+			
+			System.out.println(m_numberAlive + " insects still alive");
 		}
 		
-		// une seule action possible par tour : soit il mange, soit il charge, soit il se déplace
+		// une seule action possible par tour : soit il charge, soit il mange, soit il se déplace
 		if(m_alive)
 		{
-			if(m_charge > 0)
-			{
-				m_charge--;
-				m_energy += Constants.foodEnergy;
-				
-			}
-			else if(isOnFood() && (m_charge < m_chargeMax))
+			if(isOnFood() && (m_charge < m_chargeMax))
 			{
 				m_charge++;
 				getFood(m_spot).decreaseQuantity();
 			}
+			else if((m_charge > 0) && ((m_energy + Constants.foodEnergy) <= m_maxEnergy))
+			{
+				m_charge--;
+				m_energy += Constants.foodEnergy;
+			}
 			else
 			{
 				Spot nearestFoodSpot = nearestFoodSpot();
+				
+				// assign a random spot
+				if(nearestFoodSpot.equals(m_spot))
+					nearestFoodSpot = m_field.getFreeSpot();
+				
 				moveTowards(nearestFoodSpot);
 			}
 			

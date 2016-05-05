@@ -7,6 +7,7 @@ import sim.engine.Stoppable;
 public class Food implements Steppable
 {
 	private int m_quantity;
+	private int m_initialQuantity;
 	private Spot m_spot;
 	public Stoppable stoppable;
 	Field m_field;
@@ -17,6 +18,7 @@ public class Food implements Steppable
 		m_id = id;
 		m_spot = spot;
 		m_quantity = Constants.defaultFoodQuantity;
+		m_initialQuantity = m_quantity;
 	}
 	
 	Food(int id, Spot spot, int quantity)
@@ -24,6 +26,7 @@ public class Food implements Steppable
 		m_id = id;
 		m_spot = spot;
 		m_quantity = quantity;
+		m_initialQuantity = m_quantity;
 	}
 
 	public void decreaseQuantity()
@@ -41,12 +44,11 @@ public class Food implements Steppable
 		Field field = (Field) state;
 		m_field = field;
 		
-		System.out.println(m_quantity);
-		
 		if(m_quantity < 0)
 		{
-			m_field.field.remove(this);
-			stoppable.stop();
+			Spot freeSpot = m_field.getFreeSpot();
+			m_field.field.setObjectLocation(this, freeSpot.getX(), freeSpot.getY());
+			m_quantity = m_initialQuantity;
 		}
 	}
 }
